@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
-const links = require('./links.js');
-let linksDictionary = links.dic();
+const storage = require('./storage.js');
+let linksDictionary = storage.linkDic();
+let TOKEN = storage.token();
 
 const client = new Discord.Client();
 
@@ -58,6 +59,4 @@ client.on('message', message =>{
     }
 });
 
-
-
-
+client.login(TOKEN);
