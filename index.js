@@ -24,10 +24,30 @@ client.on('message', message =>{
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();
     console.log("message sent!");
-    if(command === 'ping'){
+    if(command === 'help'){
+        const exampleEmbed = new Discord.MessageEmbed()
+            .setColor('#03b6fc')
+            .setTitle('Commands')
+            //.setURL('https://discord.js.org/')
+            .setAuthor('NSB Bot')
+            .setDescription('The commands are listed below')
+            //.setThumbnail('https://i.imgur.com/wSTFkRM.png')
+            .addFields(
+                { name: 'Finding rounds', value: 'Say: `!get s[set] r[round]`.',inline: true},
+                { name: 'Setting up a game', value: 'Coming soon', inline: true },
+                { name: 'Coming soon', value: 'Coming soon', inline: true },
+            )
+            .addField('Inline field title', 'Some value here', true)
+            .setImage('https://i.imgur.com/wSTFkRM.png')
+            .setTimestamp()
+            .setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');
+
+        message.channel.send(exampleEmbed);
+    }
+    else if(command === 'ping'){
         message.channel.send('pong!');
     }
-    if(command === 'get' && args.length >= 2){
+    else if(command === 'get' && args.length >= 2){
         let set = "";
         let round = "";
         const first = args.shift().toLowerCase();
