@@ -19,6 +19,12 @@ function linkGetter(round,set){
 }
 
 client.on('message', message =>{
+    if(message.author.bot && message.content.startsWith("score")){
+        message.react('✅');
+        message.react('❌');
+        message.react('🤬');
+        return;
+    }
     if(!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.slice(prefix.length).split(/ +/);
@@ -38,9 +44,7 @@ client.on('message', message =>{
                 { name: 'Coming soon', value: 'Coming soon', inline: true },
             )
             .addField('Inline field title', 'Some value here', true)
-            .setImage('https://i.imgur.com/wSTFkRM.png')
-            .setTimestamp()
-            .setFooter('Some footer text here', 'https://i.imgur.com/wSTFkRM.png');
+            .setImage('https://yt3.ggpht.com/a/AATXAJz505zOhO4das2MP-KFv5JazFgunxC6bFJ7qB5S=s176-c-k-c0x00ffffff-no-rj')
 
         message.channel.send(exampleEmbed);
     }
@@ -77,6 +81,44 @@ client.on('message', message =>{
             message.channel.send("That set doesn't exist yet! Please try again");
         }
     }
+    else if(command === 'score'){
+        message.channel.send("score check:\nteam 1: 45\nteam 2: 46\n-----------------\n**Question 24**");
+    }
+});
+client.on('messageReactionAdd', async (reaction, user) => {
+	// When we receive a reaction we check if the reaction is partial or not
+	if (reaction.partial) {
+		// If the message this reaction belongs to was removed the fetching might result in an API error, which we need to handle
+		try {
+			await reaction.fetch();
+		} catch (error) {
+			console.error('Something went wrong when fetching the message: ', error);
+			// Return as `reaction.message.author` may be undefined/null
+			return;
+		}
+    }
+    //&& reaction.message.content.substring(reaction.message.content.length - 6,reaction.message.content.length) !== "points"
+    if(reaction.message.author.bot){
+        let score = 0;
+        if(reaction === '✅'){
+            score = 4;
+        }
+        else if(reaction === '❌'){
+            score = 0;
+        }
+        else if(reaction === '🤬'){
+            score = -4;
+        }
+        else{
+            return;
+        }
+        reaction.message.edit(`reaction.message.content\n+${score} points`);
+        message.channel.send("test");
+    }
+	// Now the message has been cached and is fully available
+	console.log(`${reaction.message.author}'s message "${reaction.message.content}" gained a reaction of ${reaction}!`);
+	// The reaction is now also fully available and the properties will be reflected accurately:
+	console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 });
 
 client.login(TOKEN);
