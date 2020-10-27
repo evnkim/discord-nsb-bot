@@ -23,7 +23,9 @@ client.on('message', message =>{
         message.react('✅');
         message.react('❌');
         message.react('🤬');
+        
         return;
+
     }
     if(!message.content.startsWith(prefix) || message.author.bot) return;
 
@@ -39,12 +41,12 @@ client.on('message', message =>{
             .setDescription('The commands are listed below')
             //.setThumbnail('https://i.imgur.com/wSTFkRM.png')
             .addFields(
-                { name: 'Finding rounds', value: 'Say: `!get s[set] r[round]`.',inline: true},
-                { name: 'Setting up a game', value: 'Coming soon', inline: true },
-                { name: 'Coming soon', value: 'Coming soon', inline: true },
+                { name: 'Finding rounds', value: 'Say: `!get s[set] r[round]` to get an official DOE round.',inline: true},
+                //{ name: 'Setting up a game', value: 'Coming soon', inline: true },
+                //{ name: 'Coming soon', value: 'Coming soon', inline: true },
             )
-            .addField('Inline field title', 'Some value here', true)
-            .setImage('https://yt3.ggpht.com/a/AATXAJz505zOhO4das2MP-KFv5JazFgunxC6bFJ7qB5S=s176-c-k-c0x00ffffff-no-rj')
+            //.addField('Inline field title', 'Some value here', true)
+            //.setImage('https://yt3.ggpht.com/a/AATXAJz505zOhO4das2MP-KFv5JazFgunxC6bFJ7qB5S=s176-c-k-c0x00ffffff-no-rj')
 
         message.channel.send(exampleEmbed);
     }
@@ -71,18 +73,93 @@ client.on('message', message =>{
         
         // const set = parseInt(args.shift().toLowerCase().slice(1));
         // const round = parseInt(args.shift().toLowerCase().slice(1));
-        if(set <= 5){
-            message.channel.send(`https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round${round}.pdf`);
+        if(set == 3){
+            message.channel.send(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round-${round}C.pdf`);
+        }
+        else if(set <= 5 && set > 0){
+            message.channel.send(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round${round}.pdf`);
         }
         else if(set <= currentMaxSet){
-            message.channel.send(linkGetter(round,set));
+            message.channel.send(`Here\'s DOE set ${set} round ${round}: ${linkGetter(round,set)}`);
         }
         else{
             message.channel.send("That set doesn't exist yet! Please try again");
         }
     }
+    else if(command === 'game'){
+        let questionNum = 0;
+        let totalQuestions = 24;
+        let totalPoints = 0;
+        let correct = 0;
+        let incorrect = 0;
+        let negs = 0;
+        let moderator = message.author;
+        
+        const personFilter = response => {
+            return true;
+        };
+        
+        message.channel.send("Moderator, please say \"here\" to confirm").then(() =>{
+            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+                .then(collected =>{
+                    moderator = collected.message.author;
+                })
+                .catch(collected => {
+                    message.channel.send('Time out. Please try again.');
+                    return;
+                })
+        });
+        message.channel.send("How many questions?").then(() =>{
+            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+                .then(collected =>{
+                    totalQuestions = parseInt(collected.message.content);
+                })
+                .catch(collected => {
+                    message.channel.send('Time out. Please try again.');
+                    return;
+                })
+        });
+        const filter = response => {
+            return true;
+        };
+        for(i = 0; i < totalQuestions; i++){
+            
+            message.channel.send(`Score check: totalPoints\n-----------------\n**Question ${i}**`).then(() => {
+                message.channel.awaitMessages(filter, { max: 1, time: 5000, errors: ['time'] })
+                    .then(collected => {
+                        message.channel.send(`**${collected.first().author}** buzzed!`);
+                        totalPoints += 4;
+                        correct += 1;
+                    })
+                    .catch(collected => {
+                        message.channel.send('Times up!');
+                    });
+            });
+            message.channel.send(`Send \"next\" to move on to question ${i+1}!`).then(() =>{
+                message.channel.awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
+                    .then(collected => {
+                        message.channel.send(`Alright! Next question!`);
+                    })
+                    .catch(collected => {
+                        message.channel.send('No response received, ending game.');
+                        return;
+                    });
+            });
+        }
+    }
     else if(command === 'score'){
-        message.channel.send("score check:\nteam 1: 45\nteam 2: 46\n-----------------\n**Question 24**");
+        const filter = response => {
+            return true;
+        };
+        message.channel.send("score check:\nteam 1: 45\nteam 2: 46\n-----------------\n**Question 24**").then(() => {
+            message.channel.awaitMessages(filter, { max: 1, time: 5000, errors: ['time'] })
+                .then(collected => {
+                    message.channel.send(`**${collected.first().author}** buzzed!`);
+                })
+                .catch(collected => {
+                    message.channel.send('Times up!');
+                });
+        });
     }
 });
 client.on('messageReactionAdd', async (reaction, user) => {
