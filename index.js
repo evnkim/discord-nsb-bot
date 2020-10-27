@@ -98,54 +98,77 @@ client.on('message', message =>{
         const personFilter = response => {
             return true;
         };
-        
-        message.channel.send("Moderator, please say \"here\" to confirm").then(() =>{
-            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
-                .then(collected =>{
-                    moderator = collected.message.author;
-                })
-                .catch(collected => {
-                    message.channel.send('Time out. Please try again.');
-                    return;
-                })
-        });
-        message.channel.send("How many questions?").then(() =>{
-            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
-                .then(collected =>{
-                    totalQuestions = parseInt(collected.message.content);
-                })
-                .catch(collected => {
-                    message.channel.send('Time out. Please try again.');
-                    return;
-                })
-        });
-        const filter = response => {
-            return true;
-        };
-        for(i = 0; i < totalQuestions; i++){
-            
-            message.channel.send(`Score check: totalPoints\n-----------------\n**Question ${i}**`).then(() => {
+
+        //Not functioning recursive function here.
+        function waitForBuzz(questionsLeft){
+            if(questionsLeft === 0){
+                return;
+            }
+            message.channel.send(`Score check: ${totalPoints}\n-----------------\n**Question ${i}**`).then(() => {
                 message.channel.awaitMessages(filter, { max: 1, time: 5000, errors: ['time'] })
                     .then(collected => {
                         message.channel.send(`**${collected.first().author}** buzzed!`);
                         totalPoints += 4;
-                        correct += 1;
+                        correct += 1;    
+                        message.channel.send(`Send \"next\" to move on to question ${i+1}!`).then(() =>{
+                            message.channel.awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
+                                .then(collected => {
+                                    message.channel.send(`Alright! Next question!`);
+                                    waitForBuzz(questionsLeft - 1);
+                                })
+                                .catch(collected => {
+                                    message.channel.send('No response received, ending game.');
+                                    return;
+                                });
+                        });
                     })
                     .catch(collected => {
                         message.channel.send('Times up!');
-                    });
-            });
-            message.channel.send(`Send \"next\" to move on to question ${i+1}!`).then(() =>{
-                message.channel.awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
-                    .then(collected => {
-                        message.channel.send(`Alright! Next question!`);
-                    })
-                    .catch(collected => {
-                        message.channel.send('No response received, ending game.');
-                        return;
+                        message.channel.send(`Send \"next\" to move on to question ${i+1}!`).then(() =>{
+                            message.channel.awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
+                                .then(collected => {
+                                    message.channel.send(`Alright! Next question!`);
+                                })
+                                .catch(collected => {
+                                    message.channel.send('No response received, ending game.');
+                                    return;
+                                });
+                        });
                     });
             });
         }
+        
+        message.channel.send("Moderator, please say \"here\" to confirm").then(() =>{
+            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+                .then(collected =>{
+                    moderator = collected.first().author;
+                    message.channel.send(`Thanks for moderating, ${moderator}!`);
+                    message.channel.send("How many questions?").then(() =>{
+                        message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+                            .then(collected =>{
+                                totalQuestions = parseInt(collected.first().content);
+                                const filter = response => {
+                                    return true;
+                                };
+                                for(i = 0; i < totalQuestions; i++){
+                                    
+                                    
+                                }
+                            })
+                            .catch(collected => {
+                                message.channel.send('Time out. Please try again.');
+                                return;
+                            })
+                    });
+                })
+                .catch(collected => {
+                    console.log("bruh");
+                    message.channel.send('Time out. Please try again.');
+                    return;
+                })
+        });
+        
+        
     }
     else if(command === 'score'){
         const filter = response => {
