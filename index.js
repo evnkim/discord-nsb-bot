@@ -18,6 +18,21 @@ function linkGetter(round,set){
     return `https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${linksDictionary[key]}`
 }
 
+function roundGetter(round,set){
+    if(set == 3){
+        return(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round-${round}C.pdf`);
+    }
+    else if(set <= 5 && set > 0){
+        return(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round${round}.pdf`);
+    }
+    else if(set <= currentMaxSet){
+        return(`Here\'s DOE set ${set} round ${round}: ${linkGetter(round,set)}`);
+    }
+    else{
+        return("That set doesn't exist yet! Please try again");
+    }
+}
+
 client.on('message', message =>{
     if(message.author.bot && message.content.startsWith("score")){
         message.react('✅');
@@ -73,18 +88,12 @@ client.on('message', message =>{
         
         // const set = parseInt(args.shift().toLowerCase().slice(1));
         // const round = parseInt(args.shift().toLowerCase().slice(1));
-        if(set == 3){
-            message.channel.send(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round-${round}C.pdf`);
-        }
-        else if(set <= 5 && set > 0){
-            message.channel.send(`Here\'s DOE set ${set} round ${round}: https://science.osti.gov/-/media/wdts/nsb/pdf/HS-Sample-Questions/Sample-Set-${set}/round${round}.pdf`);
-        }
-        else if(set <= currentMaxSet){
-            message.channel.send(`Here\'s DOE set ${set} round ${round}: ${linkGetter(round,set)}`);
-        }
-        else{
-            message.channel.send("That set doesn't exist yet! Please try again");
-        }
+        message.channel.send(roundGetter(round,set));
+    }
+    else if(command === "get" && args.shift().toLowerCase() === "random" ){
+        const set = Math.floor(Math.random() * currentMaxSet + 1);
+        const round = Math.floor(Math.random() *17 + 1);
+        message.channel.send(roundGetter(round,set));
     }
     else if(command === 'game'){
         let questionNum = 0;
@@ -95,9 +104,38 @@ client.on('message', message =>{
         let negs = 0;
         let moderator = message.author;
         
-        const personFilter = response => {
-            return true;
-        };
+        message.channel.send("Setting up!");
+
+        function runQuestion(questionsLeft){
+            const personFilter = response => response.content.includes(`b`) && !response.author.bot;
+            
+            if(questionsLeft <= 0){
+                return;
+            }
+
+            message.channel.send(`Score check: ${totalPoints}\n-----------------\n**Question ${totalQuestions - questionsLeft + 1}**`);
+            
+            const collector = message.channel.createMessageCollector(personFilter,{time: 15000, max: 1});
+            
+            collector.on('collect', m =>{
+                console.log(`Collected ${m.content}`)
+                message.channel.send(`bruh`);
+                message.channel.send(`${m.author} buzzed!`)
+                totalPoints += 4;
+                correct += 1;
+            });
+            collector.on('end', collected => {
+                console.log(`Collected ${collected.size} items`);
+                if(collected.size === 0){
+                    message.channel.send(`Times up, no response.`)
+                }
+                message.channel.send(`Next question coming in 5 seconds!`);
+                runQuestion(questionsLeft - 1);
+            });
+        }
+        runQuestion(totalQuestions);
+
+        message.channel.send("test");
 
         //Not functioning recursive function here.
         function waitForBuzz(questionsLeft){
@@ -138,35 +176,35 @@ client.on('message', message =>{
             });
         }
         
-        message.channel.send("Moderator, please say \"here\" to confirm").then(() =>{
-            message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
-                .then(collected =>{
-                    moderator = collected.first().author;
-                    message.channel.send(`Thanks for moderating, ${moderator}!`);
-                    message.channel.send("How many questions?").then(() =>{
-                        message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
-                            .then(collected =>{
-                                totalQuestions = parseInt(collected.first().content);
-                                const filter = response => {
-                                    return true;
-                                };
-                                for(i = 0; i < totalQuestions; i++){
+        // message.channel.send("Moderator, please say \"here\" to confirm").then(() =>{
+        //     message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+        //         .then(collected =>{
+        //             moderator = collected.first().author;
+        //             message.channel.send(`Thanks for moderating, ${moderator}!`);
+        //             message.channel.send("How many questions?").then(() =>{
+        //                 message.channel.awaitMessages(personFilter,{max: 1, time: 10000, errors: ['time']})
+        //                     .then(collected =>{
+        //                         totalQuestions = parseInt(collected.first().content);
+        //                         const filter = response => {
+        //                             return true;
+        //                         };
+        //                         for(i = 0; i < totalQuestions; i++){
                                     
                                     
-                                }
-                            })
-                            .catch(collected => {
-                                message.channel.send('Time out. Please try again.');
-                                return;
-                            })
-                    });
-                })
-                .catch(collected => {
-                    console.log("bruh");
-                    message.channel.send('Time out. Please try again.');
-                    return;
-                })
-        });
+        //                         }
+        //                     })
+        //                     .catch(collected => {
+        //                         message.channel.send('Time out. Please try again.');
+        //                         return;
+        //                     })
+        //             });
+        //         })
+        //         .catch(collected => {
+        //             console.log("bruh");
+        //             message.channel.send('Time out. Please try again.');
+        //             return;
+        //         })
+        // });
         
         
     }
