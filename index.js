@@ -103,14 +103,21 @@ client.on('message', message =>{
         let incorrect = 0;
         let negs = 0;
         let moderator = message.author;
+        let tossupTime = 8;
+        let bonusTime = 24;
         
         message.channel.send("Setting up!");
+        
+        //TODO: Add setup feature.
 
+
+        //Function for asking questions until it runs out, needs to have time be adjustable and work on point values
         function runQuestion(questionsLeft){
             console.log(questionsLeft)
             const personFilter = response => !response.author.bot;
              
             if(questionsLeft <= 0){
+                message.channel.send("Game Finished/Aborted!");
                 return;
             }
 
