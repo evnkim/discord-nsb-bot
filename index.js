@@ -107,12 +107,14 @@ client.on('message', message =>{
         message.channel.send("Setting up!");
 
         function runQuestion(questionsLeft){
-            const personFilter = response => response.content.includes(`b`) && !response.author.bot;
-            
+            console.log(questionsLeft)
+            const personFilter = response => !response.author.bot;
+             
             if(questionsLeft <= 0){
                 return;
             }
 
+            message.channel.send(`Next question coming up!`);
             message.channel.send(`Score check: ${totalPoints}\n-----------------\n**Question ${totalQuestions - questionsLeft + 1}**`);
             
             const collector = message.channel.createMessageCollector(personFilter,{time: 15000, max: 1});
@@ -120,16 +122,26 @@ client.on('message', message =>{
             collector.on('collect', m =>{
                 console.log(`Collected ${m.content}`)
                 message.channel.send(`bruh`);
-                message.channel.send(`${m.author} buzzed!`)
-                totalPoints += 4;
-                correct += 1;
+                
+                if(m.content.toLowerCase().includes(`buzz`)){
+                    message.channel.send(`${m.author} buzzed!`);
+                    totalPoints += 4;
+                    correct += 1;
+                }
+                else if(m.content.toLowerCase().includes(`abort`)){
+                    message.channel.send(`Aborting game...`);
+                    questionsLeft = 1;
+                    return;
+                    
+                }
             });
             collector.on('end', collected => {
                 console.log(`Collected ${collected.size} items`);
+                
                 if(collected.size === 0){
                     message.channel.send(`Times up, no response.`)
                 }
-                message.channel.send(`Next question coming in 5 seconds!`);
+                
                 runQuestion(questionsLeft - 1);
             });
         }
